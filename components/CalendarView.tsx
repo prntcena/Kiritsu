@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, addDays, isSameDay } from 'date-fns';
-import { Task } from '../types';
-import { Plus, Clock, MoreHorizontal, Video, X, Trash2, Tag, AlignLeft, ChevronDown } from 'lucide-react';
+import { format, addDays, isSameDay, getDay, getDate, startOfDay, isBefore } from 'date-fns';
+import { Task, RecurrenceType } from '../types';
+import { Plus, Clock, MoreHorizontal, Video, X, Trash2, Tag, AlignLeft, ChevronDown, Repeat, Calendar as CalendarIcon } from 'lucide-react';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const PIXELS_PER_HOUR = 120; // Taller for better readability
@@ -122,10 +122,36 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, setTasks }) =
     }
   }, []);
 
+  // Filter tasks based on selected date AND recurrence rules
   const sortedTasks = useMemo(() => {
-    return tasks
-      .filter(task => isSameDay(task.date, selectedDate))
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+    const visibleTasks = tasks.filter(task => {
+        // 1. If date is before task start date, never show
+        if (isBefore(startOfDay(selectedDate), startOfDay(task.date))) return false;
+
+        // 2. Exact match check
+        if (!task.recurrence || task.recurrence === 'none') {
+            return isSameDay(task.date, selectedDate);
+        }
+
+        // 3. Recurrence Logic
+        if (task.recurrence === 'daily') {
+            return true;
+        }
+
+        if (task.recurrence === 'weekly') {
+            // Check if day of week matches (0-6)
+            return getDay(task.date) === getDay(selectedDate);
+        }
+
+        if (task.recurrence === 'monthly') {
+            // Check if day of month matches (1-31)
+            return getDate(task.date) === getDate(selectedDate);
+        }
+
+        return false;
+    });
+
+    return visibleTasks.sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [tasks, selectedDate]);
 
   // Helpers
@@ -177,7 +203,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, setTasks }) =
       endTime,
       category: 'work',
       title: '',
-      description: ''
+      description: '',
+      recurrence: 'none'
     });
     setIsModalOpen(true);
   };
@@ -190,7 +217,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, setTasks }) =
       endTime: format(new Date(new Date().setHours(new Date().getHours() + 1)), 'HH:00'),
       category: 'work',
       title: '',
-      description: ''
+      description: '',
+      recurrence: 'none'
     });
     setIsModalOpen(true);
   };
@@ -378,9 +406,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, setTasks }) =
                         }}
                     >
                         <div className="flex justify-between items-start pointer-events-none">
-                             <div className="font-bold text-sm leading-tight">{task.title}</div>
-                             <div className="text-[10px] font-semibold opacity-70 bg-white/50 dark:bg-black/30 px-1.5 py-0.5 rounded">
-                                {task.startTime} - {task.endTime}
+                             <div className="font-bold text-sm leading-tight pr-4">{task.title}</div>
+                             <div className="flex flex-col items-end gap-1">
+                                <div className="text-[10px] font-semibold opacity-70 bg-white/50 dark:bg-black/30 px-1.5 py-0.5 rounded">
+                                    {task.startTime} - {task.endTime}
+                                </div>
+                                {/* Recurrence Icon */}
+                                {task.recurrence && task.recurrence !== 'none' && (
+                                    <div className="text-[10px] font-semibold opacity-70 bg-white/50 dark:bg-black/30 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                        <Repeat size={10} />
+                                    </div>
+                                )}
                              </div>
                         </div>
                         {getDurationHeight(task.startTime, task.endTime) > 60 && (
@@ -397,7 +433,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, setTasks }) =
         </div>
       </div>
 
-      {/* Edit/Create Modal (Reused) */}
+      {/* Edit/Create Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <>
@@ -446,6 +482,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ tasks, setTasks }) =
                         value={formData.endTime || '10:00'}
                         onChange={(val) => setFormData({...formData, endTime: val})}
                     />
+                 </div>
+
+                 {/* Recurrence Selection */}
+                 <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1"><Repeat size={12}/> Repeat</label>
+                    <div className="grid grid-cols-4 gap-2">
+                        {['none', 'daily', 'weekly', 'monthly'].map((type) => (
+                            <button
+                                key={type}
+                                onClick={() => setFormData({...formData, recurrence: type as RecurrenceType})}
+                                className={`py-2 rounded-xl text-xs font-bold uppercase transition-all ${
+                                    (formData.recurrence || 'none') === type
+                                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg shadow-gray-900/20'
+                                    : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600'
+                                }`}
+                            >
+                                {type}
+                            </button>
+                        ))}
+                    </div>
                  </div>
 
                  {/* Category Selection */}

@@ -48,7 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, childre
             onClick={() => onNavigate(AppView.DASHBOARD)}
             className="hidden sm:flex items-center justify-center w-12 h-12 bg-gray-900 dark:bg-white rounded-xl mb-4 shadow-lg shadow-gray-900/20 cursor-pointer hover:scale-105 transition-transform"
         >
-            <span className="text-white dark:text-gray-900 font-bold text-xl">S</span>
+            <span className="text-white dark:text-gray-900 font-bold text-xl">K</span>
         </div>
 
         <div className="flex flex-row sm:flex-col gap-2">

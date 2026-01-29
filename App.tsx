@@ -10,9 +10,9 @@ import { AnimatePresence } from 'framer-motion';
 
 // Mock Initial Data
 const INITIAL_TASKS: Task[] = [
-  { id: '1', title: 'Product Design Sync', startTime: '09:00', endTime: '10:00', category: 'work', date: new Date(), description: 'Review Q3 goals with the design team.' },
-  { id: '2', title: 'Lunch with Client', startTime: '12:30', endTime: '13:30', category: 'meeting', date: new Date(), description: 'Discuss the new contract terms.' },
-  { id: '3', title: 'Gym Session', startTime: '17:00', endTime: '18:30', category: 'personal', date: new Date(), description: 'Leg day.' },
+  { id: '1', title: 'Product Design Sync', startTime: '09:00', endTime: '10:00', category: 'work', date: new Date(), description: 'Review Q3 goals with the design team.', recurrence: 'weekly' },
+  { id: '2', title: 'Lunch with Client', startTime: '12:30', endTime: '13:30', category: 'meeting', date: new Date(), description: 'Discuss the new contract terms.', recurrence: 'none' },
+  { id: '3', title: 'Gym Session', startTime: '17:00', endTime: '18:30', category: 'personal', date: new Date(), description: 'Leg day.', recurrence: 'daily' },
 ];
 
 const INITIAL_NOTES: Note[] = [

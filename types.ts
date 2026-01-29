@@ -6,6 +6,8 @@ export enum AppView {
   STUDY = 'STUDY'
 }
 
+export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly';
+
 export interface Task {
   id: string;
   title: string;
@@ -14,6 +16,7 @@ export interface Task {
   category: 'work' | 'personal' | 'meeting';
   date: Date;
   description?: string;
+  recurrence?: RecurrenceType;
 }
 
 export interface Note {
